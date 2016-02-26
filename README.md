@@ -31,6 +31,7 @@ Nathan Badaud
 docker build -t imaze .
 ```
 ### Launch container
+```
 docker run -it --rm --name running-imaze imaze
 ```
 ### Launch container + open a SSH connection
