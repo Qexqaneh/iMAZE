@@ -93,7 +93,7 @@ def LookAround(maze, coordonates):
 		possibilities.append(RIGHT)
 
 	# si aucune issue, c'est la mer noire
-	if len(possibilities) == 0: 
+	if len(possibilities) == 0:
 		possibilities.append(FAIL)
 
 	return possibilities
@@ -103,7 +103,7 @@ def ChooseYourWay(maze, possibilities, currentPosition):
 	newDirection = possibilities[random.randint(0, len(possibilities) - 1)]
 
 	# on indique que la case a deja ete visitee
-	# il suffit de supprimer cette ligne pour que le programme ne s'arrete que lorsque la sortie aura ete trouvee, mais en passant éventuellement plusieurs fois par le meme point
+	# il suffit de supprimer cette ligne pour que le programme ne s'arrete que lorsque la sortie aura ete trouvee, mais en passant eventuellement plusieurs fois par le meme point
 	maze[currentPosition[0]][currentPosition[1]] = VISITED
 
 	# modification de la position
