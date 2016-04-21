@@ -133,9 +133,20 @@ def DoDijkstra(maze, start, finish):
 		exitFound = SearchForNeighbours(maze, allcosts, iteration)
 		iteration += 1
 
-# TODO : partir de l'arrivee et faire le chemin inverse, en ajoutant la direction a prendre dans un tableau result, qui sera envoye a Nao
-#(avec tableau.insert pour ajouter au debut de la liste, vu que le chemin sera inverse)
-def DoReverseTravel(maze, currentPosition):
+def DoReverseTravel(maze, start, finish):
+	"""execute le chemin inverse, de l'arrivee au depart, grace aux couts, et renvoie un tableau avec les mouvements a effectuer pour sortir du labyrinthe"""
+	currentPosition = list(finish)
+
+	while maze[currentPosition[0]][currentPosition[1]] != START:
+		#insert pour ajouter au debut de la liste, vu que le chemin sera inverse
+		result.insert(0, ChooseTheLowestCost(maze, currentPosition))
+
+	result.append(WIN)
+
+	return result
+
+def ChooseTheLowestCost(maze, currentPosition):
+	"""cherche la case voisine avec le cout le moins eleve, l'affecte a currentPosition et renvoie le deplacement inverse necessaire"""
 	x = currentPosition[0]
 	y = currentPosition[1]
 	# tableau a deux dimensions, avec pour chaque tableau :
@@ -143,36 +154,56 @@ def DoReverseTravel(maze, currentPosition):
 	possibilities = []
 
 	# on regarde en haut
-	if (x > 0) and (maze[x - 1][y] > 0):
-		# deplacements inverses car on va de l'arrivee vers le depart
-		cost = maze[x - 1][y]
-		goDown = [x - 1, y, cost, DOWN]
-		possibilities.append(goDown)
+	if x > 0:
+		if maze[x - 1][y] > 0:
+			# deplacements inverses car on va de l'arrivee vers le depart
+			cost = maze[x - 1][y]
+			goDown = [x - 1, y, cost, DOWN]
+			possibilities.append(goDown)
+		if maze[x - 1][y] == START:
+			currentPosition[0] = x - 1
+			return DOWN
 
 	# on regarde en bas
-	if (x < len(maze) - 1) and (maze[x + 1][y] > 0):
-		cost = maze[x + 1][y]
-		goUp = [x + 1, y, cost, UP]
-		possibilities.append(goUp)
+	if x < len(maze) - 1:
+		if maze[x + 1][y] > 0:
+			cost = maze[x + 1][y]
+			goUp = [x + 1, y, cost, UP]
+			possibilities.append(goUp)
+		if maze[x + 1][y] == START:
+			currentPosition[0] = x + 1
+			return UP
 
 	# on regarde a gauche
-	if (y > 0) and (maze[x][y - 1] > 0):
-		cost = maze[x][y - 1]
-		goRight = [x, y - 1, cost, RIGHT]
-		possibilities.append(goRight)
+	if y > 0:
+		if maze[x][y - 1] > 0:
+			cost = maze[x][y - 1]
+			goRight = [x, y - 1, cost, RIGHT]
+			possibilities.append(goRight)
+		if maze[x][y - 1] == START:
+			currentPosition[1] = y - 1
+			return RIGHT
 
 	# on regarde a droite
-	if (y < len(maze[0]) - 1) and (maze[x][y + 1] > 0):
-		cost = maze[x][y + 1]
-		goLeft = [x, y + 1, cost, LEFT]
-		possibilities.append(goLeft)
+	if y < len(maze[0]) - 1:
+		if maze[x][y + 1] > 0:
+			cost = maze[x][y + 1]
+			goLeft = [x, y + 1, cost, LEFT]
+			possibilities.append(goLeft)
+		if maze[x][y + 1] == START:
+			currentPosition[1] = y + 1
+			return LEFT
 
-	# TODO : choisir le mouvement
 	currentPosition[0] = possibilities[0][0]
 	currentPosition[1] = possibilities[0][1]
+	lowestCost = possibilities[0][2]
 	move = possibilities[0][3]
 
-	for i in range(1, len(possibilities)
+	for i in range(1, len(possibilities - 1)):
+		if possibilities[i][2] < lowestCost:
+			currentPosition[0] = possibilities[i][0]
+			currentPosition[1] = possibilities[i][1]
+			move = possibilities[i][3]
 
 	return move
 
@@ -229,6 +260,8 @@ def IsNotAlreadyInTheList(allCosts, x, y, newCost):
 maze = InitializeMaze()
 start = Find(maze, START)
 finish = Find(maze, FINISH)
+DoDijkstra(maze, start, finish)
+print DoReverseTravel(maze, start, finish)
 
 #ancienne methode
 #print GetOutOfHere(maze, start, finish)
