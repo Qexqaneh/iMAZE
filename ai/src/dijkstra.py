@@ -28,7 +28,8 @@ FAIL = "epic fail"
 def InitializeMaze():
     #"""lecture csv et initialisation labyrinthe"""
 	maze = []
-	with open('maze1.csv', 'rb') as csvfile:
+	fileName = raw_input("please enter the file name:")
+	with open('mazes/'+fileName+'.csv', 'rb') as csvfile:
 	    data = csv.reader(csvfile, delimiter=';')
 	    for row in data:
 	    	rowMaze = []
