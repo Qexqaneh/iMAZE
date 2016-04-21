@@ -10,12 +10,14 @@
 
 import csv
 import random
+import time
 
 PATH = 0
-WALL = -1
-START = -2
-FINISH = -3
+WALL = 1
+START = 2
+FINISH = 3
 VISITED = 4
+LOWEST_COST = 10
 LEFT = "left"
 RIGHT = "right"
 UP = "up"
@@ -26,7 +28,7 @@ FAIL = "epic fail"
 def InitializeMaze():
     #"""lecture csv et initialisation labyrinthe"""
 	maze = []
-	with open('maze2.csv', 'rb') as csvfile:
+	with open('maze1.csv', 'rb') as csvfile:
 	    data = csv.reader(csvfile, delimiter=';')
 	    for row in data:
 	    	rowMaze = []
@@ -119,23 +121,24 @@ def ChooseYourWay(maze, possibilities, currentPosition):
 	return newDirection
 
 def DoDijkstra(maze, start, finish):
-	# structure de allcosts : tableau a deux dimensions
-	# chaque tableau a l'interieur de allcosts possede 3 valeurs : coordonnee x, coordonnee y, cout de la case
-	allcosts = []
+	# structure de allCosts : tableau a deux dimensions
+	# chaque tableau a l'interieur de allCosts possede 3 valeurs : coordonnee x, coordonnee y, cout de la case
+	allCosts = []
 	startWithCost = list(start)
-	startWithCost.append(0)
-	allcosts.append(startWithCost)
+	startWithCost.append(LOWEST_COST)
+	allCosts.append(startWithCost)
 
 	iteration = 0
 	exitFound = False
 
 	while not exitFound:
-		exitFound = SearchForNeighbours(maze, allcosts, iteration)
+		exitFound = SearchForNeighbours(maze, allCosts, iteration)
 		iteration += 1
 
 def DoReverseTravel(maze, start, finish):
 	"""execute le chemin inverse, de l'arrivee au depart, grace aux couts, et renvoie un tableau avec les mouvements a effectuer pour sortir du labyrinthe"""
 	currentPosition = list(finish)
+	result = []
 
 	while maze[currentPosition[0]][currentPosition[1]] != START:
 		#insert pour ajouter au debut de la liste, vu que le chemin sera inverse
@@ -153,9 +156,12 @@ def ChooseTheLowestCost(maze, currentPosition):
 	# coordonnee x, coordonnee y, cout, mouvement inverse
 	possibilities = []
 
+	#test
+	#print maze[currentPosition[0]][currentPosition[1]]
+
 	# on regarde en haut
 	if x > 0:
-		if maze[x - 1][y] > 0:
+		if maze[x - 1][y] >= LOWEST_COST:
 			# deplacements inverses car on va de l'arrivee vers le depart
 			cost = maze[x - 1][y]
 			goDown = [x - 1, y, cost, DOWN]
@@ -166,7 +172,7 @@ def ChooseTheLowestCost(maze, currentPosition):
 
 	# on regarde en bas
 	if x < len(maze) - 1:
-		if maze[x + 1][y] > 0:
+		if maze[x + 1][y] >= LOWEST_COST:
 			cost = maze[x + 1][y]
 			goUp = [x + 1, y, cost, UP]
 			possibilities.append(goUp)
@@ -176,7 +182,7 @@ def ChooseTheLowestCost(maze, currentPosition):
 
 	# on regarde a gauche
 	if y > 0:
-		if maze[x][y - 1] > 0:
+		if maze[x][y - 1] >= LOWEST_COST:
 			cost = maze[x][y - 1]
 			goRight = [x, y - 1, cost, RIGHT]
 			possibilities.append(goRight)
@@ -186,7 +192,7 @@ def ChooseTheLowestCost(maze, currentPosition):
 
 	# on regarde a droite
 	if y < len(maze[0]) - 1:
-		if maze[x][y + 1] > 0:
+		if maze[x][y + 1] >= LOWEST_COST:
 			cost = maze[x][y + 1]
 			goLeft = [x, y + 1, cost, LEFT]
 			possibilities.append(goLeft)
@@ -194,63 +200,70 @@ def ChooseTheLowestCost(maze, currentPosition):
 			currentPosition[1] = y + 1
 			return LEFT
 
+	#test
+	#print possibilities
+
 	currentPosition[0] = possibilities[0][0]
 	currentPosition[1] = possibilities[0][1]
 	lowestCost = possibilities[0][2]
 	move = possibilities[0][3]
 
-	for i in range(1, len(possibilities - 1)):
+	for i in range(1, len(possibilities)):
 		if possibilities[i][2] < lowestCost:
 			currentPosition[0] = possibilities[i][0]
 			currentPosition[1] = possibilities[i][1]
 			move = possibilities[i][3]
 
+	#test
+	#print move
+	#time.sleep(1)
+
 	return move
 
-def SearchForNeighbours(maze, allcosts, iteration):
-	"""ajoute dans allcosts tous les voisins de l'iteration actuelle disponibles, avec un cout superieur, et renvoie True si l'arrivee en fait partie"""
-	x = allcosts[iteration][0]
-	y = allcosts[iteration][1]
-	newCost = allcosts[iteration][2] + 1
+def SearchForNeighbours(maze, allCosts, iteration):
+	"""ajoute dans allCosts tous les voisins de l'iteration actuelle disponibles, avec un cout superieur, et renvoie True si l'arrivee en fait partie"""
+	x = allCosts[iteration][0]
+	y = allCosts[iteration][1]
+	newCost = allCosts[iteration][2] + 1
 
 	# on regarde en haut
 	if x > 0:
 		if maze[x - 1][y] == FINISH:
 			return True
-		elif maze[x - 1][y] == PATH and IsNotAlreadyInTheList(allcosts, x - 1, y, newCost):
-			allcosts.append([x - 1], y, newCost])
+		elif maze[x - 1][y] == PATH and IsNotAlreadyInTheList(allCosts, x - 1, y, newCost):
+			allCosts.append([x - 1, y, newCost])
 			maze[x - 1][y] = newCost
 
 	# on regarde en bas
 	if x < len(maze) - 1:
 		if maze[x + 1][y] == FINISH:
 			return True
-		if maze[x + 1][y] == PATH and IsNotAlreadyInTheList(allcosts, x + 1, y, newCost):
-		allcosts.append([x + 1], y, newCost])
-		maze[x + 1][y] = newCost
+		if maze[x + 1][y] == PATH and IsNotAlreadyInTheList(allCosts, x + 1, y, newCost):
+			allCosts.append([x + 1, y, newCost])
+			maze[x + 1][y] = newCost
 
 	# on regarde a gauche
 	if y > 0:
 		if maze[x][y - 1] == FINISH:
 			return True
-		if maze[x][y - 1] == PATH and IsNotAlreadyInTheList(allcosts, x, y - 1, newCost):
-		allcosts.append([x][y - 1], newCost)
-		maze[x][y - 1] = newCost
+		if maze[x][y - 1] == PATH and IsNotAlreadyInTheList(allCosts, x, y - 1, newCost):
+			allCosts.append([x, y - 1, newCost])
+			maze[x][y - 1] = newCost
 
 	# on regarde a droite
 	if y < len(maze[0]) - 1:
 		if maze[x][y + 1] == FINISH:
 			return True
-	 	if maze[x][y + 1] == PATH and IsNotAlreadyInTheList(allcosts, x, y + 1, newCost):
-		allcosts.append([x][y + 1], newCost)
-		maze[x][y + 1] = newCost
+	 	if maze[x][y + 1] == PATH and IsNotAlreadyInTheList(allCosts, x, y + 1, newCost):
+			allCosts.append([x, y + 1, newCost])
+			maze[x][y + 1] = newCost
 
 	return False
 
 def IsNotAlreadyInTheList(allCosts, x, y, newCost):
 	"""compare les nouvelles valeurs avec celles deja presentes dans allCosts, et renvoie False si un cas est deja existant et moins couteux, sinon renvoie True"""
-	for i in range(allcosts):
-		if allcosts[i][0] == x and allcosts[i][1] == y and allcosts[i][2] < newCost:
+	for i in range(len(allCosts)):
+		if allCosts[i][0] == x and allCosts[i][1] == y and allCosts[i][2] < newCost:
 			# cas deja existant, et avec un cout inferieur, donc inutile de traiter ce nouveau cas
 			return False
 	# si rien n'a ete trouve, alors ce n'est effectivement pas deja dans la liste
@@ -261,6 +274,8 @@ maze = InitializeMaze()
 start = Find(maze, START)
 finish = Find(maze, FINISH)
 DoDijkstra(maze, start, finish)
+#for i in range(len(maze)):
+#	print maze[i]
 print DoReverseTravel(maze, start, finish)
 
 #ancienne methode
