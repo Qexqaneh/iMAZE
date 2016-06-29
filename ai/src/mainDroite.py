@@ -25,15 +25,10 @@ DOWN = "down"
 WIN = "win!"
 FAIL = "epic fail"
 
-fileName = None
-
 def InitializeMaze():
     #"""lecture csv et initialisation labyrinthe"""
 	maze = []
-	global fileName
-
-	if fileName == None:
-		fileName = raw_input("please enter the file name:")
+	fileName = raw_input("please enter the file name:")
 	with open('mazes/'+fileName+'.csv', 'rb') as csvfile:
 	    data = csv.reader(csvfile, delimiter=';')
 	    for row in data:
@@ -141,20 +136,20 @@ def DoDijkstra(maze, start, finish):
 		exitFound = SearchForNeighbours(maze, allCosts, iteration)
 		iteration += 1
 
-def DoReverseTravel(maze, finalMaze, start, finish):
+def DoReverseTravel(maze, start, finish):
 	"""execute le chemin inverse, de l'arrivee au depart, grace aux couts, et renvoie un tableau avec les mouvements a effectuer pour sortir du labyrinthe"""
 	currentPosition = list(finish)
 	result = []
 
 	while maze[currentPosition[0]][currentPosition[1]] != START:
 		#insert pour ajouter au debut de la liste, vu que le chemin sera inverse
-		result.insert(0, ChooseTheLowestCost(maze, finalMaze, currentPosition))
+		result.insert(0, ChooseTheLowestCost(maze, currentPosition))
 
 	result.append(WIN)
 
 	return result
 
-def ChooseTheLowestCost(maze, finalMaze, currentPosition):
+def ChooseTheLowestCost(maze, currentPosition):
 	"""cherche la case voisine avec le cout le moins eleve, l'affecte a currentPosition et renvoie le deplacement inverse necessaire"""
 	x = currentPosition[0]
 	y = currentPosition[1]
@@ -220,7 +215,6 @@ def ChooseTheLowestCost(maze, finalMaze, currentPosition):
 			currentPosition[1] = possibilities[i][1]
 			move = possibilities[i][3]
 
-	finalMaze[currentPosition[0]][currentPosition[1]] = VISITED
 	#test
 	#print move
 	#time.sleep(1)
@@ -278,17 +272,12 @@ def IsNotAlreadyInTheList(allCosts, x, y, newCost):
 
 # MAIN
 maze = InitializeMaze()
-finalMaze = InitializeMaze()
 start = Find(maze, START)
 finish = Find(maze, FINISH)
 DoDijkstra(maze, start, finish)
 #for i in range(len(maze)):
 #	print maze[i]
-print DoReverseTravel(maze, finalMaze, start, finish)
-
-with open('dijkstra.csv', 'wb') as exitFile:
-    csv_writer = csv.writer(exitFile, delimiter=';')
-    csv_writer.writerows(finalMaze)
+print DoReverseTravel(maze, start, finish)
 
 #ancienne methode
 #print GetOutOfHere(maze, start, finish)
