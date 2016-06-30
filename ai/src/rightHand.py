@@ -54,151 +54,6 @@ def Find(maze, value):
 				break
 	return coordonates
 
-def DoDijkstra(maze, start, finish):
-	# structure de allcosts : tableau a deux dimensions
-	# chaque tableau a l'interieur de allcosts possede 3 valeurs : coordonnee x, coordonnee y, cout de la case
-	allcosts = []
-	startWithCost = list(start)
-	startWithCost.append(0)
-	allcosts.append(startWithCost)
-
-	iteration = 0
-	exitFound = False
-
-	while not exitFound:
-		exitFound = SearchForNeighbours(maze, allcosts, iteration)
-		iteration += 1
-
-def DoReverseTravel(maze, start, finish):
-	"""execute le chemin inverse, de l'arrivee au depart, grace aux couts, et renvoie un tableau avec les mouvements a effectuer pour sortir du labyrinthe"""
-	currentPosition = list(finish)
-	result = []
-
-	while maze[currentPosition[0]][currentPosition[1]] != START:
-		#insert pour ajouter au debut de la liste, vu que le chemin sera inverse
-		result.insert(0, ChooseTheLowestCost(maze, currentPosition))
-
-	result.append(WIN)
-
-	return result
-
-def ChooseTheLowestCost(maze, currentPosition):
-	"""cherche la case voisine avec le cout le moins eleve, l'affecte a currentPosition et renvoie le deplacement inverse necessaire"""
-	x = currentPosition[0]
-	y = currentPosition[1]
-	# tableau a deux dimensions, avec pour chaque tableau :
-	# coordonnee x, coordonnee y, cout, mouvement inverse
-	possibilities = []
-
-	#test
-	print maze[currentPosition[0]][currentPosition[1]]
-
-	# on regarde en haut
-	if x > 0:
-		if maze[x - 1][y] > 0:
-			# deplacements inverses car on va de l'arrivee vers le depart
-			cost = maze[x - 1][y]
-			goDown = [x - 1, y, cost, DOWN]
-			possibilities.append(goDown)
-		if maze[x - 1][y] == START:
-			currentPosition[0] = x - 1
-			return DOWN
-
-	# on regarde en bas
-	if x < len(maze) - 1:
-		if maze[x + 1][y] > 0:
-			cost = maze[x + 1][y]
-			goUp = [x + 1, y, cost, UP]
-			possibilities.append(goUp)
-		if maze[x + 1][y] == START:
-			currentPosition[0] = x + 1
-			return UP
-
-	# on regarde a gauche
-	if y > 0:
-		if maze[x][y - 1] > 0:
-			cost = maze[x][y - 1]
-			goRight = [x, y - 1, cost, RIGHT]
-			possibilities.append(goRight)
-		if maze[x][y - 1] == START:
-			currentPosition[1] = y - 1
-			return RIGHT
-
-	# on regarde a droite
-	if y < len(maze[0]) - 1:
-		if maze[x][y + 1] > 0:
-			cost = maze[x][y + 1]
-			goLeft = [x, y + 1, cost, LEFT]
-			possibilities.append(goLeft)
-		if maze[x][y + 1] == START:
-			currentPosition[1] = y + 1
-			return LEFT
-
-	currentPosition[0] = possibilities[0][0]
-	currentPosition[1] = possibilities[0][1]
-	lowestCost = possibilities[0][2]
-	move = possibilities[0][3]
-
-	for i in range(1, len(possibilities) - 1):
-		if possibilities[i][2] < lowestCost:
-			currentPosition[0] = possibilities[i][0]
-			currentPosition[1] = possibilities[i][1]
-			move = possibilities[i][3]
-
-	#test
-	print move
-
-	return move
-
-def SearchForNeighbours(maze, allcosts, iteration):
-	"""ajoute dans allcosts tous les voisins de l'iteration actuelle disponibles, avec un cout superieur, et renvoie True si l'arrivee en fait partie"""
-	x = allcosts[iteration][0]
-	y = allcosts[iteration][1]
-	newCost = allcosts[iteration][2] + 1
-
-	# on regarde en haut
-	if x > 0:
-		if maze[x - 1][y] == FINISH:
-			return True
-		elif maze[x - 1][y] == PATH and IsNotAlreadyInTheList(allcosts, x - 1, y, newCost):
-			allcosts.append([x - 1, y, newCost])
-			maze[x - 1][y] = newCost
-
-	# on regarde en bas
-	if x < len(maze) - 1:
-		if maze[x + 1][y] == FINISH:
-			return True
-		if maze[x + 1][y] == PATH and IsNotAlreadyInTheList(allcosts, x + 1, y, newCost):
-			allcosts.append([x + 1, y, newCost])
-			maze[x + 1][y] = newCost
-
-	# on regarde a gauche
-	if y > 0:
-		if maze[x][y - 1] == FINISH:
-			return True
-		if maze[x][y - 1] == PATH and IsNotAlreadyInTheList(allcosts, x, y - 1, newCost):
-			allcosts.append([x, y - 1, newCost])
-			maze[x][y - 1] = newCost
-
-	# on regarde a droite
-	if y < len(maze[0]) - 1:
-		if maze[x][y + 1] == FINISH:
-			return True
-	 	if maze[x][y + 1] == PATH and IsNotAlreadyInTheList(allcosts, x, y + 1, newCost):
-			allcosts.append([x, y + 1, newCost])
-			maze[x][y + 1] = newCost
-
-	return False
-
-def IsNotAlreadyInTheList(allCosts, x, y, newCost):
-	"""compare les nouvelles valeurs avec celles deja presentes dans allCosts, et renvoie False si un cas est deja existant et moins couteux, sinon renvoie True"""
-	for i in range(len(allCosts)):
-		if allCosts[i][0] == x and allCosts[i][1] == y and allCosts[i][2] < newCost:
-			# cas deja existant, et avec un cout inferieur, donc inutile de traiter ce nouveau cas
-			return False
-	# si rien n'a ete trouve, alors ce n'est effectivement pas deja dans la liste
-	return True
-
 def SearchForBestPath(maze, finalMaze, start):
 	temporaryMaze = list(maze)
 	bestPathFound = False
@@ -222,14 +77,22 @@ def SearchForBestPath(maze, finalMaze, start):
 
 		if (lowestCost != None) and (lowestCost == lastCost):
 			bestPathFound = True
-
-			for i in range(len(entirePath) - 1): # on n'ecrase pas la case ARRIVEE
-				finalMaze[entirePath[i][X]][entirePath[i][Y]] = VISITED
 		else:
 			lowestCost = lastCost
 
 		iteration += 1
 		print iteration
+
+		for i in range(len(finalMaze)):
+			for j in range(len(finalMaze[0])):
+				if finalMaze[i][j] == VISITED:
+					finalMaze[i][j] = 0
+		for i in range(len(entirePath) - 1): # on n'ecrase pas la case ARRIVEE
+				finalMaze[entirePath[i][X]][entirePath[i][Y]] = VISITED
+
+		with open('output/rightHand' + str(iteration) + '.csv', 'wb') as exitFile:
+		    csv_writer = csv.writer(exitFile, delimiter=';')
+		    csv_writer.writerows(finalMaze)
 
 def DoRightHand(temporaryMaze, start):
 	currentPosition = [start[0], start[1], 0, None] # PHEROMONE = 0 au cas d'un retour a la case depart
@@ -347,29 +210,13 @@ def FindPossiblePositions(temporaryMaze, currentPosition):
 
 	return possiblePositions
 
-# on part de la case depart
-# on regarde les cases autour, on va sur la seule case PATH possible, on enregistre la direction du dernier mouvement
-# tableau 0=droite 1=haut 2=gauche 3=bas
-# tant que case actuelle != arrivee
-#	verification dernierMouvement-1 = PATH, puis +0, +1, +2 (avec modulo 4) - 1
-#		prendre la valeur la moins grande >= 0, si plusieurs valeurs la plus faible identiques => dans l'ordre croissant du tableau des mouvemments
-# haut = -1/0
-# bas = +1/0
-# gauche = 0/-1
-# droite = 0/+1
-#
-# on regarde a droite par rapport a la derniere direction
-#	si direction = gauche : haut, gauche, bas
-
 # MAIN
 maze = InitializeMaze()
 finalMaze = InitializeMaze()
 start = Find(maze, START)
 #finish = Find(maze, FINISH)
 SearchForBestPath(maze, finalMaze, start)
-#DoDijkstra(maze, start, finish)
-#print DoReverseTravel(maze, start, finish)
 
-with open('rightHand.csv', 'wb') as exitFile:
+with open('output/rightHand.csv', 'wb') as exitFile:
     csv_writer = csv.writer(exitFile, delimiter=';')
     csv_writer.writerows(finalMaze)

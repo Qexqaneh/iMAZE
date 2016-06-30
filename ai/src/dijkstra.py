@@ -282,13 +282,12 @@ finalMaze = InitializeMaze()
 start = Find(maze, START)
 finish = Find(maze, FINISH)
 DoDijkstra(maze, start, finish)
-#for i in range(len(maze)):
-#	print maze[i]
 print DoReverseTravel(maze, finalMaze, start, finish)
 
-with open('dijkstra.csv', 'wb') as exitFile:
+with open('output/dijkstraFinal.csv', 'wb') as exitFile:
     csv_writer = csv.writer(exitFile, delimiter=';')
     csv_writer.writerows(finalMaze)
 
-#ancienne methode
-#print GetOutOfHere(maze, start, finish)
+with open('output/dijkstraEnCours.csv', 'wb') as exitFile:
+    csv_writer = csv.writer(exitFile, delimiter=';')
+    csv_writer.writerows(maze)
